@@ -17,7 +17,7 @@ SUBSYSTEM_DEF(mining)
 	var/list/mining_areas = list()
 
 /datum/controller/subsystem/mining/Initialize()
-	Regenerate()
+	//Regenerate()
 	last_collapse = world.timeofday
 
 /datum/controller/subsystem/mining/fire()

@@ -21,3 +21,30 @@
 			new type(event_turf)
 
 		qdel(datum_spawn)
+
+/obj/effect/overmap/event/meteor
+	var/decl/asteroid_class/class // Determines material make up of asteroid when using the asteroid magnet.
+	var/spent = FALSE			  // Whether or not the asteroid field has been harvested yet.
+	
+/obj/effect/overmap/event/meteor/Initialize()
+	. = ..()
+	if(!class)
+		class = pick(decls_repository.get_decls_of_subtype(/decl/asteroid_class/))
+
+/decl/asteroid_class/
+	var/name = "Space Rock"
+	var/desc = "A standard, boring space rock."
+	var/rock_type = /turf/simulated/wall/natural/asteroid // What the majority of the asteroid will be made out of.
+	var/mineral_type = /turf/simulated/wall/natural/random/asteroid // What the minerals in the asteroid will be.
+
+/decl/asteroid_class/asteroid
+	name = "Asteroid"
+	desc = "Silicate dense remnants of would-be planets. Rich in metals and other materials of industrial use."
+	rock_type = /turf/simulated/wall/natural/asteroid
+	mineral_type = /turf/simulated/wall/natural/random/asteroid
+
+/decl/asteroid_class/comet
+	name = "Comet"
+	desc = "Icy balls of dust formed from beyond the system's frostline. Often contains rare volatiles and unusual chemicals trapped within their ice."
+	rock_type = /turf/simulated/wall/natural/comet
+	mineral_type = /turf/simulated/wall/natural/random/comet

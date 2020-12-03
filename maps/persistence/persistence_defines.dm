@@ -3,29 +3,29 @@
 	full_name = "Outreach Outpost"
 	path = "persistence"
 
-	station_levels = list(1, 2, 3, 4)
-	contact_levels = list(1, 2, 3, 4)
-	player_levels = list(1, 2, 3, 4)
-	saved_levels = list(3, 4)
+	station_levels = list(1, 2, 3)
+	contact_levels = list(1, 2, 3)
+	player_levels = list(1, 2, 3)
+	saved_levels = list(1, 2, 3, 4)
 	mining_areas = list(1, 2)
 
 	// Hotloading module
 	default_levels = list(
-		"1" = 'maps/persistence/outreach_1_mine_2.dmm',
-		"2" = 'maps/persistence/outreach_2_mine_1.dmm',
-		"3" = 'maps/persistence/outreach_3_ground.dmm',
-		"4" = 'maps/persistence/outreach_4_sky.dmm'
+		"1" = 'maps/example/example-1.dmm',
+		"2" = 'maps/example/example-2.dmm',
+		"3" = 'maps/example/example-3.dmm'
+	//	"4" = 'maps/persistence/outreach_4_sky.dmm'
 	)
 
 	// A list of turfs and their default turfs for serialization optimization.
 	base_turf_by_z = list(
-		"1" = /turf/simulated/floor/exoplanet/barren,
-		"2" = /turf/simulated/floor/exoplanet/barren,
-		"3" = /turf/simulated/floor/exoplanet/barren,
-		"4" = /turf/simulated/open
+		"1" = /turf/space,
+		"2" = /turf/space,
+		"3" = /turf/space,
+	//	"4" = /turf/simulated/open
 	)
 
-	overmap_size = 100
+	overmap_size = 20
 	overmap_event_areas = 250
 
 	allowed_spawns = list("Cyrogenic Storage")

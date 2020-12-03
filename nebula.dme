@@ -3191,5 +3191,9 @@
 #include "maps\~mapsystem\maps_unit_testing.dm"
 #include "maps\~unit_tests\unit_testing.dm"
 #include "mods\_modpack.dm"
+#include "mods\persistence\game\turfs\simulated\asteroid_subtypes.dm"
+#include "mods\persistence\modules\materials\definitions\materials_ice.dm"
+#include "mods\persistence\modules\overmap\asteroid_magnet.dm"
+#include "mods\persistence\modules\random_map\automata\asteroid.dm"
 #include "~code\global_init.dm"
 // END_INCLUDE
