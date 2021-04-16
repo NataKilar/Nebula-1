@@ -4002,7 +4002,8 @@
 		"vars":[
 			"stackmob",
 			"backup",
-			"cortical_alias"
+			"cortical_alias",
+			"mind_id"
 		]
 	},
 	{

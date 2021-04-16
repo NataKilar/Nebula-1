@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `list_element` (
   `value` longtext NOT NULL,
   `value_type` varchar(256) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 -- Data exporting was unselected.
 -- Dumping structure for table persistent.thing
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `thing` (
   `y` int DEFAULT NULL,
   `z` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 -- Data exporting was unselected.
 -- Dumping structure for table persistent.thing_var
@@ -43,7 +43,18 @@ CREATE TABLE IF NOT EXISTS `thing_var` (
   `type` varchar(256) NOT NULL,
   `value` longtext NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
+
+-- Data exporting was unselected.
+-- Dumping structure for table persistent.thing_var
+DROP TABLE IF EXISTS `player`;
+CREATE TABLE IF NOT EXISTS `player` (
+  `id` int NOT NULL,
+  `mob_id` int NOT NULL,
+  `ckey` longtext NOT NULL,
+  `mind_uid` longtext NOT NULL
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 -- Data exporting was unselected.
 -- Dumping structure for table persistent.z_level
@@ -56,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `z_level` (
   `metadata` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 -- Data exporting was unselected.
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

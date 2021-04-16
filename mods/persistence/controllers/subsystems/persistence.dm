@@ -102,22 +102,21 @@
 
 		// Now to go through for all *characters*. Characters are annoying because they could be anywhere.
 		new_z_index++
+		/*
 		var/lost_character_z = new_z_index // Special z_level for lost bois.
-		for(var/mob/living in world)
-			if(!living.z) // TODO: Fix this. Some mobs are allowed to be in nullspace. Like stackmobs.
-				continue
-			if(!living.ckey)
+		for(var/mob/living/living_mob in GLOB.living_mob_list_)
+			if(!living_mob.mind)
 				continue // Not a player character
-			if("[living.z]" in z_transform)
+			if("[living_mob.z]" in z_transform || istype(living_mob, /mob/living/limbo) && living_mob.loc == null)
 				continue // Not a lost boi.
 			// Lost boi.
 			var/datum/persistence/load_cache/z_level/z_level = new()
 			z_level.dynamic = TRUE
-			z_level.index = living.z
+			z_level.index = living_mob.z
 			z_level.new_index = lost_character_z
 			z_level.default_turf = /turf/space
-			z_transform["[living.z]"] = z_level
-
+			z_transform["[living_mob.z]"] = z_level
+		*/
 		// Now we rebuild our z_level metadata list into the serializer for it to remap everything for us.
 		for(var/z in z_transform)
 			var/datum/persistence/load_cache/z_level/z_level = z_transform[z]
@@ -201,13 +200,24 @@
 		query.Execute()
 		if(query.ErrorMsg())
 			to_world_log("Z_LEVEL SERIALIZATION FAILED: [query.ErrorMsg()].")
-
-		// Save all players.
-		for(var/mob/living/T in world)
-			serializer.Serialize(T)
+		
+		// We serialize every character manually so they don't get lost outside of the gameworld.
+		var/list/mob_inserts = list()
+		var/mob_insert_index = 1
+		for(var/mob/living/living_mob in GLOB.living_mob_list_)
+			if(!living_mob.mind) // Ignore any mobs without an associated player character.
+				continue
+			var/datum/mind/mob_mind = living_mob.mind
+			var/mob_id = serializer.Serialize(living_mob)
+			mob_inserts += "([mob_insert_index],[mob_id],'[mob_mind.key]','[mob_mind.unique_id]')"
+			mob_insert_index++
 			CHECK_TICK
-		serializer.Commit()
+		var/DBQuery/mob_query = dbcon.NewQuery("INSERT INTO `player` (`id`,`mob_id`, `ckey`,`mind_uid`) VALUES[jointext(mob_inserts, ",")]")
+		mob_query.Execute()
+		if(mob_query.ErrorMsg())
+			to_world_log("MOB CHAR SERIALIZATION FAILED: [mob_query.ErrorMsg()].")
 
+		serializer.Commit()
 		//
 		//	CLEANUP SECTION
 		//
@@ -318,6 +328,18 @@
 
 /datum/controller/subsystem/persistence/proc/RemoveSavedArea(var/area/A)
 	saved_areas -= A
+
+// Returns the load cache for a single sql_row, including vars and list elements.
+/datum/controller/subsystem/persistence/proc/get_load_cache(var/sql_row)
+	var/datum/persistence/load_cache/thing/target = new(sql_row)
+	
+	var/DBQuery/query = dbcon.NewQuery("SELECT `thing_id`,`key`,`type`,`value` FROM `thing_var` WHERE `thing_id` = '[sql_row["id"]]'")
+	query.Execute()
+	while(query.NextRow())
+		var/items = query.GetRowData()
+		var/datum/persistence/load_cache/thing_var/target_var = new(items)
+		target.thing_vars += target_var
+	return target
 
 /hook/roundstart/proc/retally_all_power()
 	for(var/area/A)

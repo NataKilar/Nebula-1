@@ -2,17 +2,27 @@
 	// This is a unique UID that will forever identify this mind.
 	// No two minds are ever the same, and this ID will always identify 'this character'.
 	var/unique_id
-	var/age = 0// How old the mob's mind is in years.
+	var/age = 0    // How old the mob's mind is in years.
 	var/philotic_damage = 0
 
 	var/datum/skillset/chargen_skillset 		// Temporary skillset used for character generation.
 	var/finished_chargen = FALSE				// Whether or not this character finished character generation.
+	var/chargen_stack = TRUE					// Whether or not this character will spawn with a cortical stack.
 	var/decl/hierarchy/chargen/origin/origin 	// The origin chosen for this character at chargen.
 	var/decl/hierarchy/chargen/role/role		// The role chosen for this character at chargen.
 
 /datum/mind/New()
 	. = ..()
 	unique_id = "[sequential_id(/datum/mind)]"
+
+/datum/mind/transfer_to(mob/living/new_character)
+	. = ..()
+	// New mobs tend to have their organs installed before mind is transferred, so we'll double check that the mind_id is correct here.
+	var/mob/living/carbon/human/H = new_character
+	if(istype(H))
+		var/obj/item/organ/internal/stack/S = H.get_internal_organ(BP_STACK)
+		if(S)
+			S.update_mind_id()
 
 /proc/get_valid_clone_pods(var/mind_id)
 	var/list/valid_clone_pods = list()
@@ -36,9 +46,9 @@
 			if(!CP.is_valid_respawn(user.mind.unique_id))
 				to_chat(user, SPAN_WARNING("That cloning pod has become unavailable. Please choose a new cloning pod."))
 				return show_valid_respawns(user)
-			CP.create_character(user.mind, user.ckey)
-			user.mind.philotic_damage += rand(3, 15)
-			if(user.mind.philotic_damage > 75)
+			var/mob/new_mob = CP.create_character(user.mind, user.ckey)
+			new_mob.mind.philotic_damage += 10
+			if(new_mob.mind.philotic_damage > 70)
 				to_chat(user, SPAN_WARNING("Colors seem to lack the vibrance they used to have. It would be easy to just go to sleep and never wake up."))
 			user.Destroy() // Whatever mob was storing us is no longer needed.
 			return TRUE

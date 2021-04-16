@@ -95,6 +95,7 @@
 #include "modules\modular_computers\networking\machines\_network_machine.dm"
 #include "modules\modular_computers\networking\machines\acl.dm"
 #include "modules\modular_computers\networking\machines\router.dm"
+#include "modules\organs\external\head.dm"
 #include "modules\organs\internal\brain.dm"
 #include "modules\organs\internal\stack.dm"
 #include "modules\overmap\_defines.dm"

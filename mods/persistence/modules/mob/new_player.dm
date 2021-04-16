@@ -88,15 +88,39 @@
 		return
 	if(spawning)
 		return
-	for(var/mob/M in GLOB.living_mob_list_)   // A mob with a matching saved_ckey is already in the game, put the player back where they were.
-		if(M.loc && !istype(M, /mob/new_player) && (M.saved_ckey == ckey || M.saved_ckey == "@[ckey]"))
+	for(var/mob/living/M in GLOB.living_mob_list_)   // A mob with a matching saved_ckey is already in the game, put the player back where they were.
+		var/datum/mind/target_mind = M.mind
+		if(target_mind?.key == key)
 			transition_to_game()
 			to_chat(src, SPAN_NOTICE("A character is already in game."))
 			spawning = TRUE
 			M.key = key
 			qdel(src)
 			return
+	// Now check to see if the character is in the database, waiting to be deserialized.
+	var/DBQuery/char_query = dbcon.NewQuery("SELECT `mob_id` FROM `player` WHERE `ckey` = '[ckey]'")
+	char_query.Execute()
+	if(char_query.ErrorMsg())
+		to_world_log("CHAR DESERIALIZATION FAILED: [char_query.ErrorMsg()].")
+	var/mob_id
+	while(char_query.NextRow())
+		mob_id = char_query.item[1]
+	if(mob_id)
+		var/DBQuery/mob_query = dbcon.NewQuery("SELECT `id`,`type`,`x`,`y`,`z` FROM `thing` WHERE `id` = '[mob_id]'")
+		mob_query.Execute()
+		var/items
+		while(mob_query.NextRow())
+			items = mob_query.GetRowData()
 
+		var/serializer/sql/serializer = SSpersistence.serializer
+		var/datum/persistence/load_cache/thing/T = SSpersistence.get_load_cache(items)
+		var/mob/living/guy = serializer.DeserializeDatum(T)
+		transition_to_game()
+		to_chat(src, SPAN_NOTICE("A character is already in game."))
+		spawning = TRUE
+		guy.key = key
+		qdel(src)
+		return
 	create_character()	// Creating a new character based off the player's preferences.
 	qdel(src)
 

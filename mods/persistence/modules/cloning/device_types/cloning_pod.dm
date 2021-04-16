@@ -1,11 +1,13 @@
-#define TASK_SCAN_TIME 	60
-#define TASK_CLONE_TIME	60
+#define TASK_SCAN_TIME 	60 SECONDS
+#define TASK_CLONE_TIME	60 SECONDS
 
 /datum/extension/network_device/cloning_pod
 	var/occupied = FALSE
 	var/scanning = FALSE
 	var/cloning = FALSE
+	var/cloning_progress = 0 // Used to display messages to whoever is being clone while they're in the vat. 
 	var/task_started_on
+	var/current_task 		 // Timer ID of task
 
 	var/datum/file_transfer/scan
 
@@ -49,7 +51,7 @@
 			S.stackmob.client.perspective = EYE_PERSPECTIVE
 			S.stackmob.client.eye = CP
 
-/datum/extension/network_device/cloning_pod/proc/create_character(var/datum/mind/mind, var/ckey, var/datum/computer_file/data/cloning/backup)
+/datum/extension/network_device/cloning_pod/proc/create_character(var/datum/mind/mind, var/datum/computer_file/data/cloning/backup, var/obj/item/organ/internal/stack/stack)
 	var/datum/computer_network/network = get_network()
 	if(!network)
 		return
@@ -64,30 +66,36 @@
 	new_character.UpdateAppearance()
 	new_character.sync_organ_dna()
 
+	// The body forms 'around' the stack, so reinstall it.
+	if(stack)
+		var/obj/item/organ/O = new_character.get_organ(stack.parent_organ)
+		stack.status &= ~ORGAN_CUT_AWAY
+		stack.replaced(new_character, O)
+
 	mind.transfer_to(new_character)
 
 	new_character.set_sdisability(BLINDED)
 
-	to_chat(new_character, "Reality comes flooding back all at once, cushioned by a flurry of perfluorochemical bubbles.")
-	to_chat(new_character, SPAN_NOTICE("OOC: Characters usually have memory loss about the details surrounding their death. Play responsibly."))
-
 	set_occupant(new_character)
 	cloning = TRUE
 	task_started_on = world.time
-	addtimer(CALLBACK(src, /datum/extension/network_device/cloning_pod/proc/eject_occupant), TASK_CLONE_TIME SECONDS)
+	update_cloning()
+	current_task = addtimer(CALLBACK(src, /datum/extension/network_device/cloning_pod/proc/update_cloning), TASK_CLONE_TIME/4, TIMER_STOPPABLE | TIMER_LOOP)
 	qdel(backup)
 	return new_character
 
-/datum/extension/network_device/cloning_pod/proc/eject_occupant(var/mob/user)
+/datum/extension/network_device/cloning_pod/proc/eject_occupant(var/mob/user, var/forced = FALSE)
 	var/atom/movable/occupant = get_occupant()
 	if(!occupant)
 		return
-	if(scanning)
-		to_chat(user, SPAN_NOTICE("Cannot eject [occupant] while scans are running."))
-		return
-	if(cloning)
-		to_chat(user, SPAN_NOTICE("Cannot eject [occupant] while cloning process is active."))
-		return
+	// Don't allow for manual early ejection from the pod.
+	if(!forced)
+		if(scanning)
+			to_chat(user, SPAN_NOTICE("Cannot eject [occupant] while scans are running."))
+			return
+		if(cloning)
+			to_chat(user, SPAN_NOTICE("Cannot eject [occupant] while cloning process is active."))
+			return
 
 	var/obj/machinery/cloning_pod/CP = holder
 
@@ -106,13 +114,37 @@
 	set_occupant(null)
 	return TRUE
 
+/datum/extension/network_device/cloning_pod/proc/update_cloning()
+	var/atom/movable/occupant = get_occupant()
+	if(!occupant || !cloning)
+		cloning_progress = 0
+		deltimer(current_task)
+		return
+	switch(cloning_progress)
+		if(0)
+			to_chat(occupant, SPAN_NOTICE("Reality comes flooding back all at once, cushioned by a flurry of perfluorochemical bubbles."))
+			to_chat(occupant, SPAN_NOTICE("OOC: Characters usually have memory loss about the details surrounding their death. Play responsibly."))
+		if(1)
+			to_chat(occupant, SPAN_NOTICE("You feel a tingling numbness as the rudiments of your nervous system reform."))
+		if(2)
+			to_chat(occupant, SPAN_NOTICE("Muscle, bone, and skin coagulate around you. Your body is nearly remade."))
+		if(3)
+			to_chat(occupant, SPAN_NOTICE("The harsh light beyond the tube is intensifying. You'll be waking up soon."))
+		if(4)
+			to_chat(occupant, SPAN_NOTICE("You're harshly ejected out of the cloning tube, forced back into the world of the living."))
+			deltimer(current_task)
+			cloning = FALSE
+			cloning_progress = 0
+			eject_occupant()
+			return
+	cloning_progress += 1
+
 /datum/extension/network_device/cloning_pod/proc/begin_scan(var/mob/caller, var/filesource)
+	if(!check_scan())
+		return
+	cancel_task() // Delete any in progress timers just in case.
 	var/atom/movable/occupant = get_occupant()
 	if(!occupant)
-		return
-
-	if(istype(occupant, /obj/item/organ/internal/stack))
-		to_chat(caller, SPAN_WARNING("Occupant is invalid for scan."))
 		return
 
 	scanning = TRUE
@@ -120,7 +152,7 @@
 	var/datum/computer_file/data/cloning/cloneFile = new()
 	cloneFile.initialize_backup(occupant)
 	scan = new(null, filesource, cloneFile)
-	addtimer(CALLBACK(src, /datum/extension/network_device/cloning_pod/proc/finish_scan), TASK_SCAN_TIME SECONDS)
+	current_task = addtimer(CALLBACK(src, /datum/extension/network_device/cloning_pod/proc/finish_scan), TASK_SCAN_TIME, TIMER_STOPPABLE)
 	to_chat(occupant, SPAN_NOTICE("Lights flash around you as a cortical scan begins."))
 
 /datum/extension/network_device/cloning_pod/proc/finish_scan()
@@ -131,16 +163,47 @@
 	scanning = FALSE
 	if(!scan || !scan.transfer_to)
 		return
-	scan.transfer_to.store_file(scan.copying)
+	scan.transfer_to.store_file(scan.transferring)
 
 	qdel(scan)
 	scan = null
 
+/datum/extension/network_device/cloning_pod/proc/cancel_task()
+	deltimer(current_task)
+	scanning = FALSE
+	cloning = FALSE
+
+/datum/extension/network_device/cloning_pod/proc/check_clone()
+	if(cloning || scanning)
+		return FALSE
+	var/atom/movable/occupant = get_occupant()
+	if(!istype(occupant, /obj/item/organ/internal/stack))
+		return FALSE
+	var/obj/item/organ/internal/stack/S = occupant
+	if(S.backup && S.stackmob)
+		return TRUE
+
+	return FALSE
+
+/datum/extension/network_device/cloning_pod/proc/check_scan()
+	if(cloning || scanning)
+		return FALSE
+	var/atom/movable/occupant = get_occupant()
+	if(!istype(occupant, /mob/living/carbon))
+		return FALSE
+	var/mob/living/carbon/subject = occupant
+	if(subject.mind)
+		return TRUE
+	return FALSE
+
 /datum/extension/network_device/cloning_pod/proc/begin_clone()
+	if(!check_clone())
+		return
+	cancel_task() // Delete any in progress timers just in case.
 	var/atom/movable/occupant = get_occupant()
 	if(!occupant)
 		return
 	var/obj/item/organ/internal/stack/S = occupant
 	if(!S)
 		return
-	return create_character(S.stackmob.mind, S.stackmob.mind.key, S.backup)
+	return create_character(S?.stackmob?.mind, S.backup, S)
