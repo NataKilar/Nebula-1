@@ -25,8 +25,8 @@
 	megafauna_types = list(/mob/living/simple_animal/hostile/retaliate/parrot/space/megafauna, /mob/living/simple_animal/hostile/retaliate/goose/dire)
 
 /obj/effect/overmap/visitable/sector/exoplanet/kleibkhar/Initialize(var/mapload, var/z_level)
-	. = ..(mapload, GLOB.using_map.station_levels[4])
-	docking_codes = "[GLOB.using_map.dock_name]"
+	. = ..(mapload, global.using_map.station_levels[4])
+	docking_codes = "[global.using_map.dock_name]"
 
 	// Build Level workaround
 	maxx = world.maxx
@@ -71,7 +71,7 @@
 
 /turf/exterior/kleibkhar_grass/Initialize()
 	. = ..()
-	if(GLOB.using_map.use_overmap)
+	if(global.using_map.use_overmap)
 		var/obj/effect/overmap/visitable/sector/exoplanet/E = map_sectors["[z]"]
 		if(istype(E) && E.grass_color)
 			color = E.grass_color

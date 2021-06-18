@@ -23,8 +23,8 @@
 
 
 /obj/effect/overmap/visitable/sector/exoplanet/outreach/Initialize(var/mapload, var/z_level)
-	. = ..(mapload, GLOB.using_map.station_levels[4])
-	docking_codes = "[GLOB.using_map.dock_name]"
+	. = ..(mapload, global.using_map.station_levels[4])
+	docking_codes = "[global.using_map.dock_name]"
 
 	// Build Level workaround
 	maxx = world.maxx

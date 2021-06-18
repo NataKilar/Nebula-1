@@ -2755,8 +2755,7 @@
 			"hidden",
 			"category",
 			"resources",
-			"build_time",
-			"ignore_materials"
+			"build_time"
 		]
 	},
 	{
