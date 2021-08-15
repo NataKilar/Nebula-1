@@ -26,7 +26,7 @@ var/global/list/terminal_fails
 		var/id = pick_n_take(network.banned_nids)
 		if(id)
 			return ..()
-
+/*
 /datum/terminal_skill_fail/random_ban/email_logs
 	weight = 2
 	message = "System log backup successful. Chosen method: email attachment. Recipients: all."
@@ -51,3 +51,4 @@ var/global/list/terminal_fails
 		message.source = server.login
 		server.send_mail(email.login, message, network)
 	return ..()
+*/

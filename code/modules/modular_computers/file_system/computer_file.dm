@@ -1,15 +1,23 @@
 var/global/file_uid = 0
 
+#define NTOS_READ_ACCESS  BITFLAG(0)
+#define NTOS_WRITE_ACCESS BITFLAG(1)
+#define NTOS_MOD_ACCESS   BITFLAG(2)
+
 /datum/computer_file
 	var/filename = "NewFile" 								// Placeholder. No spacebars
 	var/filetype = "XXX" 									// File full names are [filename].[filetype] so like NewFile.XXX in this case
 	var/size = 1											// File size in GQ. Integers only!
-	var/obj/item/stock_parts/computer/hard_drive/holder	// Holder that contains this file.
+	var/obj/item/stock_parts/computer/hard_drive/holder 	// Holder that contains this file.
 	var/unsendable = 0										// Whether the file may be sent to someone via file transfer or other means.
 	var/undeletable = 0										// Whether the file may be deleted. Setting to 1 prevents deletion/renaming/etc.
 	var/uid													// UID of this file
-	var/list/metadata											// Any metadata the file uses.
+	var/list/metadata										// Any metadata the file uses.
 	var/papertype = /obj/item/paper
+
+	var/list/read_access
+	var/list/write_access
+	var/list/mod_access
 
 /datum/computer_file/New(var/list/md = null)
 	..()
@@ -38,4 +46,114 @@ var/global/file_uid = 0
 	else
 		temp.filename = filename
 	temp.filetype = filetype
+	temp.read_access = read_access
+	temp.write_access = write_access
+	temp.mod_access = mod_access
 	return temp
+
+/datum/computer_file/proc/get_file_perms(var/list/accesses, var/mob/user)
+	. = 0
+	if(!accesses || (isghost(user) && check_rights(R_ADMIN, 0, user))) // No access list past means internal usage, so grant full access. Also override for use by admin ghosts.
+		return (NTOS_READ_ACCESS | NTOS_WRITE_ACCESS | NTOS_MOD_ACCESS)
+	if(!LAZYLEN(read_access) || has_access(read_access, accesses))
+		. |= NTOS_READ_ACCESS
+	if(!LAZYLEN(write_access) || has_access(write_access, accesses))
+		. |= NTOS_WRITE_ACCESS
+	if(!LAZYLEN(mod_access) || has_access(mod_access, accesses))
+		. |= NTOS_MOD_ACCESS
+	
+/datum/computer_file/proc/get_perms_readable()
+	var/list/msg = list()
+	msg += "Permissions for file [filename]:"
+	var/read_perms
+	if(LAZYLEN(read_access))
+		read_perms = english_list(read_access[1])
+	else
+		read_perms = "No access required."
+	msg += "Read access: [read_perms]"
+	var/write_perms
+	if(LAZYLEN(write_access))
+		write_perms = english_list(write_access[1])
+	else
+		write_perms = "No access required."
+	msg += "Write access: [write_perms]"
+	var/mod_perms
+	if(LAZYLEN(mod_access))
+		mod_perms = english_list(mod_access[1])
+	else
+		mod_perms = "No access required."
+	msg += "Permission modification access: [mod_perms]"
+	return msg
+
+/datum/computer_file/proc/change_perms(var/change, var/perm, var/access_key, var/changer_accesses)
+
+	if(!has_access(mod_access, changer_accesses))
+		return FALSE
+
+	switch(perm)
+		if(NTOS_READ_ACCESS)
+			if(change == "+")
+				if(!LAZYLEN(read_access))
+					read_access = list()
+					read_access += list(list())
+				read_access[1] += access_key
+				return TRUE
+			else if(change == "-")
+				if(!LAZYLEN(read_access)) // There weren't any access requirements to begin with.
+					return TRUE
+				read_access[1] -= access_key
+				if(!length(read_access[1]))
+					read_access[1] = null
+					read_access = null
+				return TRUE
+			else
+				return FALSE // Something unexpected was passed into the change argument.
+
+		if(NTOS_WRITE_ACCESS)
+			if(change == "+")
+				if(!LAZYLEN(write_access))
+					write_access = list()
+					write_access += list(list())
+				write_access[1] += access_key
+				return TRUE
+			else if(change == "-")
+				if(!LAZYLEN(write_access))
+					return TRUE
+				write_access[1] -= access_key
+				if(!length(write_access[1]))
+					write_access[1] = null
+					write_access = null
+				return TRUE
+			else
+				return FALSE
+			
+		if(NTOS_MOD_ACCESS)
+			var/list/test_list // You can't modify access such that you can't access the file any longer, so we test changes first.
+			if(change == "+")
+				if(!LAZYLEN(mod_access))
+					test_list = list(list(access_key))
+					if(!has_access(test_list, changer_accesses))
+						return FALSE
+					mod_access = list()
+					mod_access += list(list())
+					mod_access[1] += access_key
+					return TRUE
+				test_list = list(mod_access[1] + access_key)
+				if(!has_access(test_list, changer_accesses))
+					return FALSE
+				mod_access[1] += access_key
+				return TRUE
+			else if(change == "-")
+				if(!LAZYLEN(mod_access))
+					return TRUE
+				test_list = list(mod_access[1] - access_key)
+				if(!has_access(test_list, changer_accesses))
+					return FALSE
+				mod_access[1] -= access_key
+				if(!length(mod_access[1]))
+					mod_access[1] = null
+					mod_access = null
+				return TRUE
+			else
+				return FALSE
+		

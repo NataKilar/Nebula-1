@@ -106,3 +106,9 @@
 		/decl/material/solid/glass =   CEILING((SHEET_MATERIAL_AMOUNT * FABRICATOR_EXTRA_COST_FACTOR)/2),
 		/decl/material/solid/plastic = CEILING((SHEET_MATERIAL_AMOUNT * FABRICATOR_EXTRA_COST_FACTOR)/2)
 	)
+
+/datum/fabricator_recipe/network_id
+	path = /obj/item/card/id/network
+	fabricator_types = list(
+		FABRICATOR_CLASS_GENERAL
+	)

@@ -80,7 +80,7 @@
 	add_field(/datum/report_field/simple_text, "Person/Location", "Unknown")
 	add_field(/datum/report_field/pencode_text, "Reason", "No reason")
 	add_field(/datum/report_field/signature, "Authorized by", "Unathorized")
-	set_access(access_edit = access_security)
+	set_access(write_access = access_security)
 
 /datum/computer_file/report/warrant/search/get_category()
 	. = ..()
