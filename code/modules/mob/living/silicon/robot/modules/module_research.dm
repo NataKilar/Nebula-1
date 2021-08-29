@@ -4,8 +4,8 @@
 	channels = list(
 		"Science" = TRUE
 	)
-	networks = list(
-		NETWORK_RESEARCH
+	camera_channels = list(
+		CHANNEL_RESEARCH
 	)
 	sprites = list(
 		"Droid" = "droid-science"

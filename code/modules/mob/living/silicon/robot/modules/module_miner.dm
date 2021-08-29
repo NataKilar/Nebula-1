@@ -8,8 +8,8 @@
 		"Supply" = TRUE,
 		"Science" = TRUE
 	)
-	networks = list(
-		NETWORK_MINE
+	camera_channels = list(
+		CHANNEL_MINE
 	)
 	sprites = list(
 		"Basic" = "Miner_old",
