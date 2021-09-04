@@ -5,7 +5,7 @@
 		"Science" = TRUE
 	)
 	camera_channels = list(
-		CHANNEL_RESEARCH
+		CAMERA_CHANNEL_RESEARCH
 	)
 	sprites = list(
 		"Droid" = "droid-science"

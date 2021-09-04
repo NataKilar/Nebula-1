@@ -9,7 +9,7 @@
 		"Science" = TRUE
 	)
 	camera_channels = list(
-		CHANNEL_MINE
+		CAMERA_CHANNEL_MINE
 	)
 	sprites = list(
 		"Basic" = "Miner_old",
