@@ -83,9 +83,9 @@ var/global/intercom_range_display_status = 0
 				if(C1.c_tag == C2.c_tag)
 					output += "<li><font color='red'>c_tag match for sec. cameras at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) and \[[C2.x], [C2.y], [C2.z]\] ([C2.loc.loc]) - c_tag is [C1.c_tag]</font></li>"
 				if(C1.loc == C2.loc && C1.dir == C2.dir && C1.pixel_x == C2.pixel_x && C1.pixel_y == C2.pixel_y)
-					output += "<li><font color='red'>FULLY overlapping sec. cameras at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Networks: [C1.network] and [C2.network]</font></li>"
+					output += "<li><font color='red'>FULLY overlapping sec. cameras at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Channels: [C1.preset_channels] and [C2.preset_channels]</font></li>"
 				if(C1.loc == C2.loc)
-					output += "<li>overlapping sec. cameras at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Networks: [C1.network] and [C2.network]</font></li>"
+					output += "<li>overlapping sec. cameras at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Channels: [C1.preset_channels] and [C2.preset_channels]</font></li>"
 		var/turf/T = get_step(C1,turn(C1.dir,180))
 		if(!T || !isturf(T) || !T.density )
 			if(!(locate(/obj/structure/grille,T)))
@@ -95,7 +95,7 @@ var/global/intercom_range_display_status = 0
 						window_check = 1
 						break
 				if(!window_check)
-					output += "<li><font color='red'>Camera not connected to wall at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Network: [C1.network]</color></li>"
+					output += "<li><font color='red'>Camera not connected to wall at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Channels: [C1.preset_channels]</color></li>"
 
 	output += "</ul>"
 	show_browser(usr, output, "window=airreport;size=1000x500")
@@ -114,11 +114,12 @@ var/global/intercom_range_display_status = 0
 		qdel(M)
 
 	if(intercom_range_display_status)
-		for(var/obj/item/radio/intercom/I in world)
+		for(var/obj/item/radio/intercom/I in SSmachines.machinery)
 			for(var/turf/T in orange(7,I))
 				var/obj/effect/debugging/marker/F = new/obj/effect/debugging/marker(T)
 				if (!(F in view(7,I.loc)))
 					qdel(F)
+
 	SSstatistics.add_field_details("admin_verb","mIRD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 var/global/list/debug_verbs = list (

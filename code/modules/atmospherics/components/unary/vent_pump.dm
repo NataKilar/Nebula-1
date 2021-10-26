@@ -119,6 +119,10 @@
 	name = "large air vent"
 	power_channel = EQUIP
 	power_rating = 45000
+	base_type = /obj/machinery/atmospherics/unary/vent_pump/high_volume/buildable
+
+/obj/machinery/atmospherics/unary/vent_pump/high_volume/buildable
+	uncreated_component_parts = null
 
 /obj/machinery/atmospherics/unary/vent_pump/high_volume/Initialize()
 	. = ..()
@@ -168,7 +172,6 @@
 	//Figure out the target pressure difference
 	var/pressure_delta = get_pressure_delta(environment)
 	var/transfer_moles
-	//src.visible_message("DEBUG >>> [src]: pressure_delta = [pressure_delta]")
 
 	if((environment.temperature || air_contents.temperature) && pressure_delta > 0.5)
 		if(pump_direction) //internal -> external
