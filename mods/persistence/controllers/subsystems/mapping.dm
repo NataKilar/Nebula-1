@@ -1,5 +1,5 @@
 /datum/controller/subsystem/mapping
-
+	var/loaded_maps = FALSE
 
 /datum/controller/subsystem/mapping/Initialize(timeofday)
 	. = ..()
@@ -17,7 +17,11 @@
 #endif
 		maploader.load_map(file(map_file), 1, 1, text2num(z), no_changeturf = TRUE)
 		CHECK_TICK
-
+	
+	// Persistence overmaps use premapped overmaps at the moment, so we override here to delay building the overmaps until appropriate.
+	loaded_maps = TRUE
+	if(!length(global.overmaps_by_name))
+		global.using_map.create_overmaps()
 	// Build the list of static persisted levels from our map.
 #ifdef UNIT_TEST
 	report_progress("Unit testing, so not loading saved map")
@@ -32,4 +36,3 @@
 
 /datum/map
 	var/list/default_levels
-	var/overmap_seed = "overmapseed"

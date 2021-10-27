@@ -46,7 +46,7 @@
 	if(!istype(move_intent))
 		set_next_usable_move_intent()
 
-	regenerate_icons()
+	refresh_visible_overlays()
 
 /mob/living/carbon/human/before_save()
 	. = ..()

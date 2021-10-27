@@ -142,7 +142,6 @@
 #include "modules\power\apc.dm"
 #include "modules\power\port_gen.dm"
 #include "modules\power\smes.dm"
-#include "modules\power\stirling.dm"
 #include "modules\power\fission\core.dm"
 #include "modules\power\fission\core_control.dm"
 #include "modules\power\fuel_assembly\fuel_assembly.dm"

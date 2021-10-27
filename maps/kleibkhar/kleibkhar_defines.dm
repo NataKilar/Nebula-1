@@ -6,17 +6,13 @@
 	station_name  = "Kleibkhar Colony"
 	station_short = "Kleibkhar Colony"
 
-	use_overmap = TRUE
 	evac_controller_type = /datum/evacuation_controller/lifepods
 
 	radiation_detected_message = "High levels of radiation have been detected near the surface of %STATION_NAME%. Please move to a shielded area."
 
-	overmap_size = 100
-	overmap_event_areas = 250
-
 	allowed_spawns = list(/decl/spawnpoint/cryo)
 	default_spawn = /decl/spawnpoint/cryo
-
+	overmap_ids = list(OVERMAP_ID_SPACE = /datum/overmap/kleibkhar)
 	shuttle_docked_message = "The shuttle has docked."
 	shuttle_leaving_dock = "The shuttle has departed from home dock."
 	shuttle_called_message = "A scheduled transfer shuttle has been sent."
@@ -39,3 +35,9 @@
 
 /datum/map/kleibkhar/get_map_info()
 	return "You're a colonist on the planet Kleibkhar, a lush planet targeted for development by a corporation to create a new consumer base. No government has authority in this sector. Colonists come from a wide variety of backgrounds, but universally with only the shirt on their backs."
+
+/datum/map/kleibkhar/create_overmaps()
+	if(!SSmapping.loaded_maps) // Don't do this during the startup phase since we haven't actually loaded the overmap yet.
+		return 
+	. = ..()
+	
