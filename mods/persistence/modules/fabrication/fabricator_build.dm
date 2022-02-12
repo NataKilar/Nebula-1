@@ -6,6 +6,18 @@
 	var/build_time // Blueprints use different build time calculations, so we need to keep track of the initial build time.
 
 /obj/machinery/fabricator/update_current_build(var/spend_time)
+	// Check if the production requirement specifications of the current design is met. If not, fail and move on.
+	if(!currently_building.target_recipe.check_production_requirements(src))
+		visible_message(SPAN_WARNING("\The [src] flashes numerous errors before spitting out some sparks! It seems whatever it was building failed."))
+		
+		var/datum/effect/effect/system/spark_spread/sparks = new /datum/effect/effect/system/spark_spread()
+		sparks.set_up(3, 0, loc)
+		sparks.start()
+		
+		QDEL_NULL(currently_building)
+		get_next_build()
+		update_icon()
+		return
 	if(!istype(currently_building) || !is_functioning())
 		return ..()
 	if(currently_building.instability > 1 && (world.timeofday - currently_building.last_instability_check > 5 SECONDS))
@@ -24,84 +36,4 @@
 			var/datum/effect/effect/system/spark_spread/sparks = new /datum/effect/effect/system/spark_spread()
 			sparks.set_up(3, 0, loc)
 			sparks.start()
-		
 	. = ..()
-
-/obj/machinery/fabricator/start_building()
-	. = ..()
-	currently_building.last_instability_check = world.timeofday
-	if(currently_building.power_usage)
-		change_power_consumption(currently_building.power_usage, POWER_USE_ACTIVE)
-
-/obj/machinery/fabricator/try_queue_build(var/datum/design, var/multiplier)
-	if(istype(design, /datum/fabricator_recipe))
-		var/datum/fabricator_recipe/R = design
-		if(!(fabricator_class in R.fabricator_types))
-			return // Safety check.
-		return try_queue_build_design(design, multiplier)
-	var/datum/computer_file/data/blueprint/blueprint = design
-	// Do some basic sanity checking.
-	if(!is_functioning() || !istype(blueprint))
-		return
-	multiplier = sanitize_integer(multiplier, 1, 100, 1)
-	if(!ispath(blueprint.created_path, /obj/item/stack) && multiplier > 1)
-		multiplier = 1
-
-	// Check if sufficient resources exist.
-	var/list/resources = blueprint.get_resources()
-	for(var/material in resources)
-		if(stored_material[material] < round(resources[material] * mat_efficiency) * multiplier)
-			return
-
-	// Generate and track a new order.
-	var/datum/fabricator_build_order/order = new
-	order.build_time = blueprint.get_build_time()
-	order.remaining_time = order.build_time
-	order.target_recipe =  blueprint.get_recipe()
-	order.multiplier =     multiplier
-	order.power_usage =    CEILING(initial(active_power_usage) / blueprint.power_efficiency)
-	order.instability =    blueprint.instability
-	queued_orders +=       order
-
-	// Remove/earmark resources.
-	for(var/material in resources)
-		var/removed_mat = round(resources[material] * mat_efficiency) * multiplier
-		stored_material[material] = max(0, stored_material[material] - removed_mat)
-		order.earmarked_materials[material] = removed_mat
-
-	if(!currently_building)
-		get_next_build()
-	else
-		start_building()
-
-/obj/machinery/fabricator/proc/try_queue_build_design(var/datum/fabricator_recipe/recipe, var/multiplier)
-		// Do some basic sanity checking.
-	if(!is_functioning() || !istype(recipe))
-		return
-	multiplier = sanitize_integer(multiplier, 1, 100, 1)
-	if(!ispath(recipe.path, /obj/item/stack) && multiplier > 1)
-		multiplier = 1
-
-	// Check if sufficient resources exist.
-	for(var/material in recipe.resources)
-		if(stored_material[material] < round(recipe.resources[material] * mat_efficiency) * multiplier)
-			return
-
-	// Generate and track a new order.
-	var/datum/fabricator_build_order/order = new
-	order.build_time = recipe.build_time
-	order.remaining_time = order.remaining_time
-	order.target_recipe =  recipe
-	order.multiplier =     multiplier
-	queued_orders +=       order
-
-	// Remove/earmark resources.
-	for(var/material in recipe.resources)
-		var/removed_mat = round(recipe.resources[material] * mat_efficiency) * multiplier
-		stored_material[material] = max(0, stored_material[material] - removed_mat)
-		order.earmarked_materials[material] = removed_mat
-
-	if(!currently_building)
-		get_next_build()
-	else
-		start_building()

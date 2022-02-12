@@ -2785,7 +2785,12 @@
 			"hidden",
 			"category",
 			"resources",
-			"build_time"
+			"build_time",
+			"item_specifications",
+			"production_requirements",
+			"finishing_requirements",
+			"instability",
+			"fabricator_types"
 		]
 	},
 	{
@@ -4385,6 +4390,43 @@
 		"path":"/obj/machinery/forensic",
 		"vars":[
 			"sample"
+		]
+	},
+	{
+		"path":"/datum/computer_file/data/design",
+		"vars":[
+			"research_levels",
+			"field_flags",
+			"research_requirements",
+			"tier",
+			"remaining_points",
+			"free_points",
+			"specifications",
+			"finalized",
+			"recipe"
+		]
+	},
+	{
+		"path":"/datum/specification",
+		"vars":[
+			"archetype",
+			"strength",
+			"materials"
+		]
+	},
+	{
+		"path":"/datum/extension/specification_holder",
+		"vars":[
+			"specifications"
+		]
+	},
+	{
+		"path":"/obj/item/unfinished_assembly",
+		"vars":[
+			"created_path",
+			"item_specifications",
+			"screwdrivered",
+			"fired"
 		]
 	}
 ]
